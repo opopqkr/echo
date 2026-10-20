@@ -2,6 +2,8 @@ package com.echo.post.application;
 
 import com.echo.post.domain.Post;
 import com.echo.post.infrastructure.PostRepository;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,5 +24,14 @@ public class PostService {
     public Post create(Long authorId, String content) {
         Post post = new Post(authorId, content);
         return postRepository.save(post);
+    }
+
+    /** 없으면 빈 Optional — 404 같은 HTTP 처리는 호출하는 쪽(컨트롤러)의 몫. */
+    public Optional<Post> findById(Long id) {
+        return postRepository.findById(id);
+    }
+
+    public List<Post> findAllLatest() {
+        return postRepository.findAllByOrderByCreatedAtDescIdDesc();
     }
 }
