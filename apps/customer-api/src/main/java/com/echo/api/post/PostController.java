@@ -6,8 +6,10 @@ import com.echo.post.domain.Post;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * 글(Post) HTTP API 컨트롤러.
@@ -15,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/posts")
-@Tag(name = "Post", description = "글 작성 API")
+@Tag(name = "Post", description = "글 작성·조회 API")
 public class PostController {
 
     private final PostService postService;
@@ -33,5 +35,22 @@ public class PostController {
 
         Post post = postService.create(userId, request.content());
         return ApiResponse.ok(PostResponse.from(post), "글이 작성되었습니다.");
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "글 단건 조회", description = "id로 글을 조회합니다. 없으면 404를 반환합니다.")
+    public ApiResponse<PostResponse> getPost(@PathVariable Long id) {
+        Post post = postService.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "글을 찾을 수 없습니다. id=" + id));
+        return ApiResponse.ok(PostResponse.from(post));
+    }
+
+    @GetMapping
+    @Operation(summary = "글 목록 조회", description = "최신 글부터 정렬한 목록을 조회합니다.")
+    public ApiResponse<List<PostResponse>> getPosts() {
+        List<PostResponse> posts = postService.findAllLatest().stream()
+            .map(PostResponse::from)
+            .toList();
+        return ApiResponse.ok(posts);
     }
 }
